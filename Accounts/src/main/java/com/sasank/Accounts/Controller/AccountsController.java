@@ -25,5 +25,10 @@ public class AccountsController {
                 .body(new ResponseDto(AccountsConstants.STATUS_201,"Account created successfully"));
     }
 
+    @GetMapping("/fetch")
+    public ResponseEntity<CustomerDto> fetchAccountDetails(@RequestParam String mobileNumber){
+        return ResponseEntity.ok(accountsService.fetchAccount(mobileNumber));
+    }
+
 
 }

@@ -1,5 +1,6 @@
 package com.sasank.Accounts.Service.impl;
 
+import com.sasank.Accounts.Dto.AccountsDto;
 import com.sasank.Accounts.Dto.CustomerDto;
 import com.sasank.Accounts.Entity.Accounts;
 import com.sasank.Accounts.Entity.Customer;
@@ -7,6 +8,8 @@ import com.sasank.Accounts.Repository.AccountsRepo;
 import com.sasank.Accounts.Repository.CustomerRepo;
 import com.sasank.Accounts.Service.IAccountsService;
 import com.sasank.Accounts.constants.AccountsConstants;
+import com.sasank.Accounts.exception.ResourceNotFoundException;
+import com.sasank.Accounts.mapper.AccountsMapper;
 import com.sasank.Accounts.mapper.CustomerMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +56,15 @@ public class AccountServiceImpl implements IAccountsService {
 
     @Override
     public CustomerDto fetchAccount(String mobileNumber) {
-        return null;
+        Customer customer = customerRepo.findByMobileNumber(mobileNumber).orElseThrow(
+                () -> new ResourceNotFoundException("Customer", "mobileNumber", mobileNumber)
+        );
+        Accounts accounts = accountsRepo.findByCustomerId(customer.getCustomerId()).orElseThrow(
+                () -> new ResourceNotFoundException("Account", "customerId", customer.getCustomerId().toString())
+        );
+        CustomerDto customerDto = CustomerMapper.mapToCustomerDto(customer, new CustomerDto());
+        customerDto.setAccountsDto(AccountsMapper.mapToAccountsDto(accounts, new AccountsDto()));
+        return customerDto;
     }
 
     @Override
