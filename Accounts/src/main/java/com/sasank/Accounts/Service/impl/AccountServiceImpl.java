@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
 
@@ -28,6 +29,11 @@ public class AccountServiceImpl implements IAccountsService {
     public void createAccount(CustomerDto customerDto) {
         Customer customer= CustomerMapper.mapToCustomer(customerDto,new Customer());
       Optional<Customer> optionalCustomer=  customerRepo.findByMobileNumber(customerDto.getMobileNumber());
+      if(optionalCustomer.isPresent()){
+            throw new RuntimeException("Customer already exists "+customerDto.getMobileNumber());
+      }
+      customer.setCreatedAt(LocalDateTime.now());
+      customer.setCreatedBy("Anonymous");
        Customer savedCustomer= customerRepo.save(customer);
         accountsRepo.save(createNewAccount(savedCustomer));
     }
@@ -40,6 +46,8 @@ public class AccountServiceImpl implements IAccountsService {
         newAccount.setAccountNumber(randomAccNumber);
         newAccount.setAccountType(AccountsConstants.SAVINGS);
         newAccount.setBranchAddress(AccountsConstants.ADDRESS);
+        newAccount.setCreatedAt(LocalDateTime.now());
+        newAccount.setCreatedBy("Anonymous");
         return newAccount;
     }
 
