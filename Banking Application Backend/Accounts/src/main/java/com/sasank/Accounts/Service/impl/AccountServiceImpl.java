@@ -28,6 +28,8 @@ public class AccountServiceImpl implements IAccountsService {
     @Autowired
     private CustomerRepo customerRepo;
 
+
+
     @Override
     public void createAccount(CustomerDto customerDto) {
         Customer customer= CustomerMapper.mapToCustomer(customerDto,new Customer());
@@ -35,8 +37,7 @@ public class AccountServiceImpl implements IAccountsService {
       if(optionalCustomer.isPresent()){
             throw new RuntimeException("Customer already exists "+customerDto.getMobileNumber());
       }
-      customer.setCreatedAt(LocalDateTime.now());
-      customer.setCreatedBy("Anonymous");
+
        Customer savedCustomer= customerRepo.save(customer);
         accountsRepo.save(createNewAccount(savedCustomer));
     }
@@ -49,8 +50,7 @@ public class AccountServiceImpl implements IAccountsService {
         newAccount.setAccountNumber(randomAccNumber);
         newAccount.setAccountType(AccountsConstants.SAVINGS);
         newAccount.setBranchAddress(AccountsConstants.ADDRESS);
-        newAccount.setCreatedAt(LocalDateTime.now());
-        newAccount.setCreatedBy("Anonymous");
+
         return newAccount;
     }
 
@@ -69,11 +69,36 @@ public class AccountServiceImpl implements IAccountsService {
 
     @Override
     public boolean updateAccount(CustomerDto customerDto) {
-        return false;
+        boolean isUpdated = false;
+        AccountsDto accountsDto = customerDto.getAccountsDto();
+        if(accountsDto !=null ){
+            Accounts accounts = accountsRepo.findById(accountsDto.getAccountNumber()).orElseThrow(
+                    () -> new ResourceNotFoundException("Account", "AccountNumber", accountsDto.getAccountNumber().toString())
+            );
+            AccountsMapper.mapToAccounts(accountsDto, accounts);
+            accounts = accountsRepo.save(accounts);
+
+            Long customerId = accounts.getCustomerId();
+            Customer customer = customerRepo.findById(customerId).orElseThrow(
+                    () -> new ResourceNotFoundException("Customer", "CustomerID", customerId.toString())
+            );
+            CustomerMapper.mapToCustomer(customerDto,customer);
+            customerRepo.save(customer);
+            isUpdated = true;
+        }
+        return  isUpdated;
     }
+
 
     @Override
     public boolean deleteAccount(String mobileNumber) {
-        return false;
+        Customer customer = customerRepo.findByMobileNumber(mobileNumber).orElseThrow(
+                () -> new ResourceNotFoundException("Customer", "mobileNumber", mobileNumber)
+        );
+        accountsRepo.deleteByCustomerId(customer.getCustomerId());
+        customerRepo.deleteById(customer.getCustomerId());
+        return true;
     }
+
+
 }
