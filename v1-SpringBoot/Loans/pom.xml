@@ -102,12 +102,13 @@
 
 			</plugin>
 			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
+				<groupId>com.google.cloud.tools</groupId>
+				<artifactId>jib-maven-plugin</artifactId>
+				<version>3.4.2</version>
 				<configuration>
-					<image>
-						<name>saisasank09/loans:s4</name>
-					</image>
+					<to>
+						<image>saisasank09/loans:s6</image>
+					</to>
 				</configuration>
 			</plugin>
 		</plugins>
